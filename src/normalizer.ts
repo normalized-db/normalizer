@@ -13,8 +13,8 @@ export class Normalizer implements INormalizer {
     }
   }
 
-  public apply<T>(data: T | T[], type: string): NormalizedData {
-    return this.getImplementation().apply(data, type);
+  public apply<T>(type: string, data: T | T[]): NormalizedData {
+    return this.getImplementation().apply(type, data);
   }
 
   private getImplementation(): INormalizer  {
