@@ -12,7 +12,7 @@ describe('Normalizer', function () {
   let normalizedData;
 
   function test(rootEntity: string) {
-    const result = normalizer.apply(data, rootEntity);
+    const result = normalizer.apply(rootEntity, data);
     assert.deepEqual(result, normalizedData);
   }
 
@@ -28,13 +28,13 @@ describe('Normalizer', function () {
     beforeEach(function () {
       schemaConfig = User.SCHEMA;
       normalizer = new NormalizerBuilder()
-        .withSchemaConfig(schemaConfig)
-        .build;
+        .schemaConfig(schemaConfig)
+        .build();
     });
 
     it('Apply', function () {
-      assert.doesNotThrow(() => normalizer.apply({}, 'user'), 'Type \'user\' is not defined');
-      assert.throws(() => normalizer.apply({}, 'invalid'), 'Type \'invalid\' is not defined');
+      assert.doesNotThrow(() => normalizer.apply('user', {}), 'Type "user" is not configured');
+      assert.throws(() => normalizer.apply('invalid', {}), 'Type "invalid" is not configured');
     });
 
   });
@@ -44,8 +44,8 @@ describe('Normalizer', function () {
     beforeEach(function () {
       schemaConfig = User.SCHEMA;
       normalizer = new NormalizerBuilder()
-        .withSchemaConfig(schemaConfig)
-        .build;
+        .schemaConfig(schemaConfig)
+        .build();
       data = deepClone(User.DATA);
       normalizedData = deepClone(User.DATA_NORMALIZED);
     });
@@ -63,9 +63,9 @@ describe('Normalizer', function () {
 
     it('Reverse references', function () {
       normalizer = new NormalizerBuilder()
-        .withSchemaConfig(schemaConfig)
-        .withReverseReferences(true)
-        .build;
+        .schemaConfig(schemaConfig)
+        .reverseReferences(true)
+        .build();
       normalizedData = deepClone(User.DATA_NORMALIZED_RR);
       test('user');
     });
@@ -101,8 +101,8 @@ describe('Normalizer', function () {
     beforeEach(function () {
       schemaConfig = Blog.SCHEMA;
       normalizer = new NormalizerBuilder()
-        .withSchemaConfig(schemaConfig)
-        .build;
+        .schemaConfig(schemaConfig)
+        .build();
     });
 
     it('Single item', function () {
@@ -125,9 +125,9 @@ describe('Normalizer', function () {
 
     it('Reverse references', function () {
       normalizer = new NormalizerBuilder()
-        .withSchemaConfig(schemaConfig)
-        .withReverseReferences(true)
-        .build;
+        .schemaConfig(schemaConfig)
+        .reverseReferences(true)
+        .build();
       data = Blog.DATA;
       normalizedData = deepClone(Blog.DATA_NORMALIZED_RR);
       test('article');
@@ -136,23 +136,20 @@ describe('Normalizer', function () {
     describe('Invalid data', function () {
 
       function testError(error) {
-        assert.throws(() => normalizer.apply(data, 'article'), error);
+        assert.throws(() => normalizer.apply('article', data), error);
       }
 
       it('Expected array', function () {
         data = deepClone(Blog.POST1);
         data.comments = data.comments[0];
-        testError('\'article\' is expected to have an array of \'comment\' but got object');
+        testError('"article.comments" is expected to be an array but got object.');
       });
 
       it('Expected object', function () {
         data = deepClone(Blog.POST1);
         data.author = [data.author];
-        testError('\'article\' is expected to have an object of \'user\' but got array');
+        testError('"article.author" is expected to be an object but got array.');
       });
-
     });
-
   });
-
 });

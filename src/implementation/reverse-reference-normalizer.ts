@@ -1,4 +1,4 @@
-import { Parent } from '@normalized-db/core';
+import { Parent } from '../model/parent';
 import { BasicNormalizer } from './basic-normalizer';
 
 export class ReverseReferenceNormalizer extends BasicNormalizer {

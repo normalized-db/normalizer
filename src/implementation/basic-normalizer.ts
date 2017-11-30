@@ -1,16 +1,19 @@
 import {
   deepClone,
+  InvalidTypeError,
   ISchema,
   isNull,
   isObject,
   IStore,
   IStoreTargetItem,
   KeyMap,
+  MissingKeyError,
   NormalizedData,
-  Parent,
+  TypeMismatchError,
   UniqueKeyCallback,
   ValidKey
 } from '@normalized-db/core';
+import { Parent } from '../model/parent';
 import { INormalizer } from '../normalizer-interface';
 
 export class BasicNormalizer implements INormalizer {
@@ -29,13 +32,15 @@ export class BasicNormalizer implements INormalizer {
     }
   }
 
-  public apply(data: any, type: string): NormalizedData {
-    this.applyHelper(deepClone(data), { type: type }, null, true);
-
+  public apply(type: string, data: any): NormalizedData {
+    this.applyHelper(deepClone(data),  { type: type }, null, true);
     return this.result;
   }
 
-  protected applyHelper(data: any, target: IStoreTargetItem, parent = new Parent(), isRoot: boolean = false): any | any[] {
+  protected applyHelper(data: any,
+                        target: IStoreTargetItem,
+                        parent = new Parent(),
+                        isRoot: boolean = false): any | any[] {
     this.validateType(target.type);
 
     if (isNull(data)) {
@@ -62,8 +67,7 @@ export class BasicNormalizer implements INormalizer {
     const config = this.schema.getConfig(target.type);
     if (isNull(data[config.key])) {
       if (!config.autoKey) {
-        throw new Error('You must provide a unique key for objects of type \'' +
-          target.type + '\' (or set `autoKey` to `true`');
+        throw new MissingKeyError(target.type, config.key);
       }
 
       data[config.key] = this.uniqueKeyCallback(target.type);
@@ -80,14 +84,10 @@ export class BasicNormalizer implements INormalizer {
   protected isArrayTypeValid(target: IStoreTargetItem, parent: Parent, isArray: boolean) {
     if (target.isArray) {
       if (!isArray) {
-        throw new Error('\'' +
-          parent.type +
-          '\' is expected to have an array of \'' +
-          target.type +
-          '\' but got object');
+        throw new TypeMismatchError(parent.type, parent.field,  true);
       }
     } else if (isArray) {
-      throw new Error('\'' + parent.type + '\' is expected to have an object of \'' + target.type + '\' but got array');
+      throw new TypeMismatchError(parent.type, parent.field,  false);
     }
   }
 
@@ -95,7 +95,10 @@ export class BasicNormalizer implements INormalizer {
     const childParent = new Parent(data[config.key], type);
     Object.keys(config.targets)
       .filter(field => field in data)
-      .forEach(field => data[field] = this.applyHelper(data[field], config.targets[field], childParent, false));
+      .forEach(field => {
+        childParent.field = field;
+        data[field] = this.applyHelper(data[field], config.targets[field], childParent, false);
+      });
   }
 
   protected onNormalized(data: any, type: string, parent: Parent): number {
@@ -129,15 +132,10 @@ export class BasicNormalizer implements INormalizer {
 
   protected nextKey(type: string): ValidKey {
     // https://stackoverflow.com/a/2117523/3863059
-    // return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-    //   const r = Math.random() * 16 | 0,
-    //     v = c === 'x' ? r : (r & 0x3 | 0x8);
-    //   return v.toString(16);
-    // });
-
-    // https://gist.github.com/gordonbrander/2230317
-    return Date.now().toString(36) +
-      Math.random().toString(36).substr(2, 5);
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
   }
 
   protected onNormalizedSimpleType(data: any, type: string): number {
@@ -152,7 +150,7 @@ export class BasicNormalizer implements INormalizer {
 
   protected validateType(type: string) {
     if (!this.schema.hasType(type)) {
-      throw new Error('Type \'' + type + '\' is not defined');
+      throw new InvalidTypeError(type);
     }
   }
 }

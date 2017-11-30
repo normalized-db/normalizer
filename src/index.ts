@@ -1,9 +1,10 @@
 import { Normalizer } from './normalizer';
-import { NormalizerBuilder } from './normalizer-builder';
 import { INormalizer } from './normalizer-interface';
+
+export * from './builder';
+export * from './model';
 
 export {
   INormalizer,
-  Normalizer,
-  NormalizerBuilder
+  Normalizer
 };
