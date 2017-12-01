@@ -1,6 +1,6 @@
 {
   "name": "@normalized-db/normalizer",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": "Sandro Schmid <saseb.schmid@gmail.com>",
   "license": "MIT",
   "description": "Normalize `JavaScript` objects based on a simple schema (implemented with `TypeScript`).",
