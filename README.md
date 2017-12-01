@@ -69,4 +69,4 @@ A more detailed example for a `ISchemaConfig` and normalization input/output can
 
 See the [examples-project](https://github.com/normalized-db/examples) for detailed examples:
 
- - [Angular4-App](https://github.com/normalized-db/examples)
+ - [Angular4-App](https://github.com/normalized-db/examples/tree/master/angular-demo)
