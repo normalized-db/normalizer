@@ -21,20 +21,24 @@ export class BasicNormalizer implements INormalizer {
   protected readonly result: NormalizedData = {};
   protected readonly keys: KeyMap = {};
 
-  constructor(protected schema: ISchema,
-              protected uniqueKeyCallback?: UniqueKeyCallback) {
+  constructor(protected readonly _schema: ISchema,
+              protected readonly _uniqueKeyCallback?: UniqueKeyCallback) {
     this.onNormalizedSimpleType = this.onNormalizedSimpleType.bind(this);
     this.onNormalizedKeyedType = this.onNormalizedKeyedType.bind(this);
 
-    if (isNull(this.uniqueKeyCallback)) {
+    if (isNull(this._uniqueKeyCallback)) {
       this.nextKey = this.nextKey.bind(this);
-      this.uniqueKeyCallback = this.nextKey;
+      this._uniqueKeyCallback = this.nextKey;
     }
   }
 
   public apply(type: string, data: any): NormalizedData {
     this.applyHelper(deepClone(data),  { type: type }, null, true);
     return this.result;
+  }
+
+  public getUniqueKeyCallback(): UniqueKeyCallback {
+    return this._uniqueKeyCallback;
   }
 
   protected applyHelper(data: any,
@@ -64,13 +68,13 @@ export class BasicNormalizer implements INormalizer {
       return data; // `data` is already normalized
     }
 
-    const config = this.schema.getConfig(target.type);
+    const config = this._schema.getConfig(target.type);
     if (isNull(data[config.key])) {
       if (!config.autoKey) {
         throw new MissingKeyError(target.type, config.key);
       }
 
-      data[config.key] = this.uniqueKeyCallback(target.type);
+      data[config.key] = this._uniqueKeyCallback(target.type);
     }
 
     if (!isNull(config.targets)) {
@@ -102,7 +106,7 @@ export class BasicNormalizer implements INormalizer {
   }
 
   protected onNormalized(data: any, type: string, parent: Parent): number {
-    const config = this.schema.getConfig(type);
+    const config = this._schema.getConfig(type);
     const onNormalizedFunction = isNull(config.key)
       ? this.onNormalizedSimpleType
       : this.onNormalizedKeyedType;
@@ -149,7 +153,7 @@ export class BasicNormalizer implements INormalizer {
   }
 
   protected validateType(type: string) {
-    if (!this.schema.hasType(type)) {
+    if (!this._schema.hasType(type)) {
       throw new InvalidTypeError(type);
     }
   }

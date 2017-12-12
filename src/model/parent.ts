@@ -1,7 +1,7 @@
 export class Parent {
 
-  constructor(public key?: any,
-              public type?: string,
+  constructor(public readonly key?: any,
+              public readonly type?: string,
               public field?: string) {
   }
 

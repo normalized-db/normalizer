@@ -5,10 +5,10 @@ import { INormalizer } from './normalizer-interface';
 
 export class Normalizer implements INormalizer {
 
-  constructor(private readonly schema: ISchema,
-              private readonly useReverseReferences: boolean = false,
-              private readonly uniqueKeyCallback?: UniqueKeyCallback) {
-    if (isNull(schema)) {
+  constructor(private readonly _schema: ISchema,
+              private readonly _useReverseReferences: boolean = false,
+              private readonly _uniqueKeyCallback?: UniqueKeyCallback) {
+    if (isNull(_schema)) {
       throw new Error('Cannot create a normalizer without a schema');
     }
   }
@@ -17,9 +17,13 @@ export class Normalizer implements INormalizer {
     return this.getImplementation().apply(type, data);
   }
 
+  public getUniqueKeyCallback(): UniqueKeyCallback {
+    return this._uniqueKeyCallback;
+  }
+
   private getImplementation(): INormalizer  {
-    return this.useReverseReferences
-      ? new ReverseReferenceNormalizer(this.schema, this.uniqueKeyCallback)
-      : new BasicNormalizer(this.schema, this.uniqueKeyCallback);
+    return this._useReverseReferences
+      ? new ReverseReferenceNormalizer(this._schema, this._uniqueKeyCallback)
+      : new BasicNormalizer(this._schema, this._uniqueKeyCallback);
   }
 }
