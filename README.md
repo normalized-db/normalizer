@@ -15,9 +15,7 @@ Normalize `JavaScript` objects based on a simple schema (implemented with `TypeS
 
 Install using NPM:
 
-    `npm install --save @normalized-db/normalizer`
-
----
+    npm install --save @normalized-db/normalizer
 
 ## Usage
 
