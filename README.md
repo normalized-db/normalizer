@@ -8,7 +8,7 @@ Normalize `JavaScript` objects based on a simple schema (implemented with `TypeS
 ## Notes
 
  - This library is under active development.
- - To ease versioning equal version numbers are used for all modules.
+ - To ease versioning equal major and minor version numbers are used for all modules.
 
 ## Installation
 
