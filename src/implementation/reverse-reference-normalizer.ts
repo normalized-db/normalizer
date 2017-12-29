@@ -5,7 +5,7 @@ export class ReverseReferenceNormalizer extends BasicNormalizer {
 
   protected onNormalized(data: any, type: string, parent: Parent): number {
     const resultIndex = super.onNormalized(data, type, parent);
-    data = this.result[type][resultIndex];
+    data = this._result[type][resultIndex];
 
     if (parent && parent.isValid) {
       if (!data._refs) {

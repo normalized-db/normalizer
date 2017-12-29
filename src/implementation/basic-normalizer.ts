@@ -1,25 +1,14 @@
 import {
-  deepClone,
-  InvalidTypeError,
-  ISchema,
-  isNull,
-  isObject,
-  IStore,
-  IStoreTargetItem,
-  KeyMap,
-  MissingKeyError,
-  NormalizedData,
-  TypeMismatchError,
-  UniqueKeyCallback,
-  ValidKey
+  deepClone, InvalidTypeError, ISchema, isNull, isObject, IStore, IStoreTargetItem, KeyMap, MissingKeyError,
+  NormalizedData, TypeMismatchError, UniqueKeyCallback, ValidKey
 } from '@normalized-db/core';
 import { Parent } from '../model/parent';
 import { INormalizer } from '../normalizer-interface';
 
 export class BasicNormalizer implements INormalizer {
 
-  protected readonly result: NormalizedData = {};
-  protected readonly keys: KeyMap = {};
+  protected readonly _result: NormalizedData = {};
+  protected readonly _keyMap: KeyMap = {};
 
   constructor(protected readonly _schema: ISchema,
               protected readonly _uniqueKeyCallback?: UniqueKeyCallback) {
@@ -33,12 +22,16 @@ export class BasicNormalizer implements INormalizer {
   }
 
   public apply(type: string, data: any): NormalizedData {
-    this.applyHelper(deepClone(data),  { type: type }, null, true);
-    return this.result;
+    this.applyHelper(deepClone(data), { type: type }, null, true);
+    return this._result;
   }
 
   public getUniqueKeyCallback(): UniqueKeyCallback {
     return this._uniqueKeyCallback;
+  }
+
+  public getKeyMap(): KeyMap {
+    return this._keyMap;
   }
 
   protected applyHelper(data: any,
@@ -88,10 +81,10 @@ export class BasicNormalizer implements INormalizer {
   protected isArrayTypeValid(target: IStoreTargetItem, parent: Parent, isArray: boolean) {
     if (target.isArray) {
       if (!isArray) {
-        throw new TypeMismatchError(parent.type, parent.field,  true);
+        throw new TypeMismatchError(parent.type, parent.field, true);
       }
     } else if (isArray) {
-      throw new TypeMismatchError(parent.type, parent.field,  false);
+      throw new TypeMismatchError(parent.type, parent.field, false);
     }
   }
 
@@ -116,22 +109,22 @@ export class BasicNormalizer implements INormalizer {
 
   protected onNormalizedKeyedType(data: any, type: string, config: IStore): number {
     const newKey = data[config.key];
-    if (type in this.result) {
+    if (type in this._result) {
       // push only if key is unknown or element was not pushed previously
-      const keyMap = this.keys[type];
+      const keyMap = this._keyMap[type];
       if (keyMap.has(newKey)) {
         return keyMap.get(newKey);
       } else {
-        keyMap.set(newKey, this.result[type].length);
-        this.result[type].push(data);
+        keyMap.set(newKey, this._result[type].length);
+        this._result[type].push(data);
       }
 
     } else {
-      this.keys[type] = new Map([[newKey, 0]]);
-      this.result[type] = [data];
+      this._keyMap[type] = new Map([[newKey, 0]]);
+      this._result[type] = [data];
     }
 
-    return this.result[type].length - 1;
+    return this._result[type].length - 1;
   }
 
   protected nextKey(type: string): ValidKey {
@@ -143,13 +136,13 @@ export class BasicNormalizer implements INormalizer {
   }
 
   protected onNormalizedSimpleType(data: any, type: string): number {
-    if (type in this.result) {
-      this.result[type].push(data);
+    if (type in this._result) {
+      this._result[type].push(data);
     } else {
-      this.result[type] = [data];
+      this._result[type] = [data];
     }
 
-    return this.result[type].length - 1;
+    return this._result[type].length - 1;
   }
 
   protected validateType(type: string) {
