@@ -1,6 +1,18 @@
 import {
-  deepClone, InvalidTypeError, ISchema, isNull, isObject, IStore, IStoreTargetItem, KeyMap, MissingKeyError,
-  NdbDocument, NormalizedData, TypeMismatchError, UniqueKeyCallback, ValidKey
+  deepClone,
+  InvalidTypeError,
+  ISchema,
+  isNull,
+  isObject,
+  IStore,
+  IStoreTargetItem,
+  KeyMap,
+  MissingKeyError,
+  NdbDocument,
+  NormalizedData,
+  TypeMismatchError,
+  UniqueKeyCallback,
+  ValidKey
 } from '@normalized-db/core';
 import { Parent } from '../model/parent';
 import { INormalizer } from '../normalizer-interface';
@@ -21,8 +33,8 @@ export class BasicNormalizer implements INormalizer {
     }
   }
 
-  public apply<T extends NdbDocument>(type: string, data: T | T[]): NormalizedData {
-    this.applyHelper(deepClone(data), { type: type }, null, true);
+  public async apply<T extends NdbDocument>(type: string, data: T | T[]): Promise<NormalizedData> {
+    await this.applyHelper(deepClone(data), { type: type }, null, true);
     return this._result;
   }
 
@@ -34,28 +46,32 @@ export class BasicNormalizer implements INormalizer {
     return this._keyMap;
   }
 
-  protected applyHelper(data: NdbDocument | NdbDocument[],
+  protected async applyHelper(data: NdbDocument | NdbDocument[],
                         target: IStoreTargetItem,
                         parent = new Parent(),
-                        isRoot: boolean = false): any | any[] {
+                        isRoot: boolean = false): Promise<any | any[]> {
     this.validateType(target.type);
 
     if (isNull(data)) {
       return null;
     } else if (Array.isArray(data)) {
-      return this.normalizeArray(data, target, parent, isRoot);
+      return await this.normalizeArray(data, target, parent, isRoot);
     } else if (isObject(data)) {
-      return this.normalizeObject(data, target, parent);
+      return await this.normalizeObject(data, target, parent);
     } else {
       return data;
     }
   }
 
-  protected normalizeArray(data: NdbDocument[], target: IStoreTargetItem, parent: Parent, isRoot: boolean) {
-    return data.map(item => this.normalizeObject(item, target, parent, !isRoot));
+  protected async normalizeArray(data: NdbDocument[], target: IStoreTargetItem, parent: Parent, isRoot: boolean) {
+    const result = [];
+    for (let i = 0; i < data.length; i++) {
+      result.push(await this.normalizeObject(data[i], target, parent, !isRoot));
+    }
+    return result;
   }
 
-  protected normalizeObject(data: NdbDocument, target: IStoreTargetItem, parent: Parent, isArray: boolean = false) {
+  protected async normalizeObject(data: NdbDocument, target: IStoreTargetItem, parent: Parent, isArray: boolean = false) {
     this.isArrayTypeValid(target, parent, isArray);
     if (!isObject(data) || data instanceof Date) {
       return data; // `data` is already normalized
@@ -67,11 +83,11 @@ export class BasicNormalizer implements INormalizer {
         throw new MissingKeyError(target.type, config.key);
       }
 
-      data[config.key] = this._uniqueKeyCallback(target.type);
+      data[config.key] = await this._uniqueKeyCallback(target.type);
     }
 
     if (!isNull(config.targets)) {
-      this.normalizeTargets(data, target.type, config);
+      await this.normalizeTargets(data, target.type, config);
     }
 
     this.onNormalized(data, target.type, parent);
@@ -88,14 +104,14 @@ export class BasicNormalizer implements INormalizer {
     }
   }
 
-  protected normalizeTargets(data: NdbDocument, type: string, config: IStore) {
+  protected async normalizeTargets(data: NdbDocument, type: string, config: IStore) {
     const childParent = new Parent(data[config.key], type);
-    Object.keys(config.targets)
+    await Promise.all(Object.keys(config.targets)
       .filter(field => field in data)
-      .forEach(field => {
+      .map(async field => {
         childParent.field = field;
-        data[field] = this.applyHelper(data[field], config.targets[field], childParent, false);
-      });
+        data[field] = await this.applyHelper(data[field], config.targets[field], childParent, false);
+      }));
   }
 
   protected onNormalized(data: NdbDocument, type: string, parent: Parent): number {
