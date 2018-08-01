@@ -1,6 +1,6 @@
 {
   "name": "@normalized-db/normalizer",
-  "version": "2.4.0",
+  "version": "2.5.0-beta.1",
   "author": "Sandro Schmid <saseb.schmid@gmail.com>",
   "license": "MIT",
   "description": "Normalize `JavaScript` objects based on a simple schema (implemented with `TypeScript`).",
@@ -32,12 +32,14 @@
     "build-and-publish": "npm run clean-build && npm publish"
   },
   "dependencies": {
-    "@normalized-db/core": "2.4.0"
+    "@normalized-db/core": "2.5.0-beta.1"
   },
   "devDependencies": {
     "@types/chai": "4.0.2",
+    "@types/chai-as-promised": "7.1.0",
     "@types/mocha": "2.2.41",
     "chai": "4.1.0",
+    "chai-as-promised": "7.1.1",
     "karma": "1.7.0",
     "karma-chai": "0.1.0",
     "karma-chrome-launcher": "2.2.0",

@@ -15,9 +15,9 @@ export class Normalizer implements INormalizer {
     }
   }
 
-  public apply<T>(type: string, data: T | T[]): NormalizedData {
+  public async apply<T>(type: string, data: T | T[]): Promise<NormalizedData> {
     const implementation = this.createImplementation();
-    const result = implementation.apply(type, data);
+    const result = await implementation.apply(type, data);
     this._keyMap = implementation.getKeyMap();
     return result;
   }
