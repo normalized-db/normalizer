@@ -3,7 +3,7 @@
 Normalize `JavaScript` objects based on a simple schema (implemented with `TypeScript`).
 
  - **Author**: Sandro Schmid ([saseb.schmid@gmail.com](<mailto:saseb.schmid@gmail.com>))
- - **Version**: 2.5.0-beta.3
+ - **Version**: 2.5.0-beta.4
 
 ## Versioning
 
